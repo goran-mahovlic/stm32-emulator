@@ -7,6 +7,7 @@ pub mod systick;
 pub mod gpio;
 pub mod dma;
 pub mod fsmc;
+pub mod fmc;
 pub mod i2c;
 pub mod nvic;
 pub mod scb;
@@ -20,6 +21,7 @@ use systick::*;
 use gpio::*;
 use dma::*;
 use fsmc::*;
+use fmc::*;
 use i2c::*;
 use nvic::*;
 use scb::*;
@@ -72,6 +74,14 @@ impl Peripherals {
             _ => (start, end),
         };
 
+        // The debug peripheral is just for to print registers right now. So we
+        // change the (start, end) only for the real peripheral.
+        let (start, end) = match name.as_str() {
+            "FMC" => (0x6000_0000, 0xA000_1000),
+            _ => (start, end),
+        };
+
+
         let p = None
             .or_else(|| NvicWrapper::new(&name))
             .or_else(||     SysTick::new(&name))
@@ -79,6 +89,7 @@ impl Peripherals {
             .or_else(||        Gpio::new(&name))
             .or_else(||       Usart::new(&name, ext_devices))
             .or_else(||        Fsmc::new(&name, ext_devices))
+            .or_else(||        Fmc::new(&name, ext_devices))
             .or_else(||         Rcc::new(&name))
             .or_else(||         I2c::new(&name))
             .or_else(||         Dma::new(&name))
